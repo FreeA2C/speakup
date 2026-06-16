@@ -56,6 +56,7 @@ footer{padding:12px 16px 24px;border-top:1px solid #2e3248;background:#0f1117;po
 <div class="ms" id="ms"></div>
 <div class="input-row">
 <textarea id="ti" rows="1" placeholder="Type or use mic..."></textarea>
+<button class="bsend" id="tts" style="background:#22263a" onclick="speak(document.querySelector('#chat .bubble.ai:last-of-type')?.textContent||'')">🔊</button>
 <button class="bmic" id="bm">🎙</button>
 <button class="bsend" id="bs">➤</button>
 </div>
@@ -68,6 +69,7 @@ function addB(text,type,time){const w=document.createElement('div');w.className=
 function addTyping(){const w=document.createElement('div');w.className='bw ai';w.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';chat.appendChild(w);chat.scrollTop=chat.scrollHeight;return w}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function toggleJa(btn){const ja=btn.previousElementSibling;if(ja.classList.contains('visible')){ja.classList.remove('visible');btn.textContent='日本語で見る'}else{ja.classList.add('visible');btn.textContent='隠す'}}
+function speak(text){const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=0.9;speechSynthesis.speak(u)}
 function addAI(reply,cor){const time=gt();addB(reply,'ai',time);if(cor&&cor.needed){const w=document.createElement('div');w.className='bw ai';const b=document.createElement('div');b.className='bubble correction';b.innerHTML='<div class="ch">✏️ Correction</div><div><span style="color:#f76f6f;text-decoration:line-through;font-size:12px">'+esc(cor.original)+'</span><br><span style="color:#3dd68c">✓ '+esc(cor.fixed)+'</span></div><div style="margin-top:8px;font-size:13px;color:#8b90a8">'+esc(cor.explanation_en)+'</div><div class="cja">'+esc(cor.explanation_ja)+'</div><button class="tja" onclick="toggleJa(this)">日本語で見る</button>';const t=document.createElement('div');t.className='time';t.textContent=time;w.appendChild(b);w.appendChild(t);chat.appendChild(w);chat.scrollTop=chat.scrollHeight}}
 async function send(text){if(!text.trim())return;const wel=chat.querySelector('.welcome');if(wel)wel.remove();addB(text,'user');hist.push({role:'user',content:text});const tw=addTyping();bs.disabled=true;
 try{const r=await fetch('/api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist})});const data=await r.json();const raw=data.content?.[0]?.text||'{}';let p;try{p=JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,'').trim())}catch{p={reply:raw,correction:{needed:false}}};tw.remove();const rep=p.reply||'Sorry, could not respond.';hist.push({role:'assistant',content:rep});addAI(rep,p.correction)}catch(e){tw.remove();addB('Connection error. Please try again.','ai')}
